@@ -34,7 +34,7 @@ export function TiltCard({
   const glareBg = useTransform(
     [glareX, glareY, sh] as never,
     ([gx, gy, h]: (string | number)[]) =>
-      `radial-gradient(520px circle at ${gx} ${gy}, rgba(121,249,202,${0.22 * (h as number)}), transparent 45%)`,
+      `radial-gradient(520px circle at ${gx} ${gy}, rgba(180,125,255,${0.22 * (h as number)}), transparent 45%)`,
   );
   const glareOpacity = useTransform(sh, [0, 1], [0, 1]);
 
@@ -100,8 +100,8 @@ export function TiltCard({
             sh,
             [0, 1],
             [
-              "inset 0 0 0 1px rgba(121,249,202,0.00)",
-              "inset 0 0 0 1px rgba(121,249,202,0.35), 0 30px 60px -20px rgba(0,240,180,0.25)",
+              "inset 0 0 0 1px rgba(180,125,255,0.00)",
+              "inset 0 0 0 1px rgba(180,125,255,0.35), 0 30px 60px -20px rgba(168,85,247,0.25)",
             ],
           ),
         }}

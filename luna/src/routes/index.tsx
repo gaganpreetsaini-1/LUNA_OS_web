@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ShaderBackground } from "@/components/luna/ShaderBackground";
 import { AnimatedText } from "@/components/luna/AnimatedText";
 import { TiltCard } from "@/components/luna/TiltCard";
 import { Reveal } from "@/components/luna/Reveal";
+import lunaLogo from "@/assets/luna-logo.png.asset.json";
+
+const DOWNLOAD_URL = "https://sourceforge.net/projects/lunaos/files/latest/download";
 
 export const Route = createFileRoute("/")({
   component: LunaOS,
 });
+
 
 const Icon = ({ name, className = "" }: { name: string; className?: string }) => (
   <span
@@ -124,8 +128,9 @@ function LunaOS() {
         <PayloadSection />
         <RequirementsSection />
         <InstallationSection />
-        <CommunitySection />
+        <ContactSection />
         <CTASection />
+
       </main>
 
       <Footer />
@@ -155,12 +160,15 @@ function Nav() {
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto px-4 md:px-8 h-20">
         <a href="#top" className="flex items-center gap-3 group">
-          <div className="relative w-9 h-9">
-            <div className="absolute inset-0 rounded-full bg-primary-container/30 blur-xl group-hover:bg-primary-container/60 transition-colors" />
-            <div className="relative w-9 h-9 rounded-full border border-primary-container/60 grid place-items-center overflow-hidden">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-container via-secondary-container to-white/40 animate-float-y" />
-              <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
-            </div>
+          <div className="relative w-10 h-10">
+            <div className="absolute inset-0 rounded-xl bg-primary-container/40 blur-xl group-hover:bg-primary-container/70 transition-colors" />
+            <img
+              src={lunaLogo.url}
+              alt="LUNA OS logo"
+              width={40}
+              height={40}
+              className="relative w-10 h-10 object-contain drop-shadow-[0_0_18px_rgba(180,125,255,0.55)] group-hover:rotate-6 transition-transform duration-500"
+            />
           </div>
           <span className="font-[var(--font-display)] text-xl font-bold tracking-tight text-primary">
             LUNA<span className="text-primary-container"> OS</span>
@@ -173,6 +181,7 @@ function Nav() {
             ["Advantages", "#advantages"],
             ["Compare", "#compare"],
             ["Install", "#install"],
+            ["Contact", "#contact"],
           ].map(([label, href]) => (
             <a
               key={href}
@@ -186,7 +195,9 @@ function Nav() {
         </nav>
 
         <a
-          href="https://sourceforge.net/projects/lunaos/files/"
+          href={DOWNLOAD_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           data-text="Download"
           className="btn-glitch relative inline-flex items-center gap-2 bg-primary-container text-void px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-md"
         >
@@ -198,6 +209,7 @@ function Nav() {
   );
 }
 
+
 /* ─────────────── HERO ─────────────── */
 function Hero() {
   const ref = useRef<HTMLDivElement>(null);
@@ -206,31 +218,67 @@ function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.85], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
 
+  // Cursor-follow spotlight
+  const mx = useMotionValue(50);
+  const my = useMotionValue(50);
+  const smx = useSpring(mx, { stiffness: 80, damping: 20 });
+  const smy = useSpring(my, { stiffness: 80, damping: 20 });
+  const spot = useTransform(
+    [smx, smy] as never,
+    ([x, y]: number[]) =>
+      `radial-gradient(600px circle at ${x}% ${y}%, rgba(192,132,252,0.18), transparent 60%)`,
+  );
+
   return (
     <section
       id="top"
       ref={ref}
-      className="relative min-h-[88vh] sm:min-h-[92vh] flex items-center justify-center overflow-hidden px-4 sm:px-6"
+      onMouseMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        mx.set(((e.clientX - r.left) / r.width) * 100);
+        my.set(((e.clientY - r.top) / r.height) * 100);
+      }}
+      className="relative min-h-[92vh] flex items-center justify-center overflow-hidden px-4 sm:px-6"
     >
-      {/* Orbital rings + halo */}
+      {/* cursor spotlight */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{ background: spot }}
+      />
+
+      {/* Orbital rings + halo + logo */}
       <motion.div
         style={{ y, opacity, scale }}
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
       >
-        <div className="w-[320px] h-[320px] sm:w-[440px] sm:h-[440px] md:w-[560px] md:h-[560px] rounded-full bg-[radial-gradient(circle,rgba(121,249,202,0.55)_0%,rgba(121,249,202,0)_70%)] animate-breathing-glow mix-blend-screen blur-3xl" />
+        <div className="w-[320px] h-[320px] sm:w-[440px] sm:h-[440px] md:w-[560px] md:h-[560px] rounded-full bg-[radial-gradient(circle,rgba(180,125,255,0.55)_0%,rgba(180,125,255,0)_70%)] animate-breathing-glow mix-blend-screen blur-3xl" />
+        <motion.img
+          src={lunaLogo.url}
+          alt=""
+          aria-hidden
+          width={300}
+          height={300}
+          fetchPriority="low"
+          decoding="async"
+          animate={{ y: [-8, 8, -8] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute w-[180px] sm:w-[240px] md:w-[300px] opacity-[0.18] blur-[1px] mix-blend-screen"
+        />
+
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 90, repeat: Infinity, ease: "linear" }}
           className="absolute w-[500px] h-[500px] sm:w-[680px] sm:h-[680px] md:w-[820px] md:h-[820px] rounded-full border border-primary-container/10"
         >
-          <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary-container shadow-[0_0_20px_rgba(121,249,202,0.9)]" />
+          <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary-container shadow-[0_0_20px_rgba(180,125,255,0.9)]" />
         </motion.div>
         <motion.div
           animate={{ rotate: -360 }}
           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
           className="absolute w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] md:w-[560px] md:h-[560px] rounded-full border border-primary-container/20"
         >
-          <span className="absolute top-1/2 -right-1 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-secondary-container shadow-[0_0_16px_rgba(0,242,166,0.9)]" />
+          <span className="absolute top-1/2 -right-1 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-secondary-container shadow-[0_0_16px_rgba(168,85,247,0.9)]" />
         </motion.div>
       </motion.div>
 
@@ -245,8 +293,8 @@ function Hero() {
           </span>
         </Reveal>
 
-        <h1 className="mt-6 sm:mt-8 font-[var(--font-display)] text-[44px] xs:text-[52px] sm:text-[76px] md:text-[96px] lg:text-[112px] leading-[0.95] tracking-[-0.04em] font-bold text-primary">
-          <AnimatedText text="Light. Fast." as="span" className="block" />
+        <h1 className="mt-6 sm:mt-8 font-[var(--font-display)] text-[56px] xs:text-[68px] sm:text-[92px] md:text-[116px] lg:text-[140px] leading-[0.92] tracking-[-0.045em] font-bold text-white">
+          <AnimatedText text="Light. Fast." as="span" className="block text-white" />
           <span className="block mt-1 sm:mt-2">
             <AnimatedText
               text="Limitless."
@@ -270,19 +318,21 @@ function Hero() {
           className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full sm:w-auto px-2"
         >
           <a
-            href="https://sourceforge.net/projects/lunaos/files/"
+            href={DOWNLOAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             data-text="Download ISO"
-            className="btn-glitch relative inline-flex items-center justify-center gap-2 bg-primary-container text-void px-6 sm:px-7 py-3.5 sm:py-4 rounded-md font-semibold text-sm w-full sm:w-auto"
+            className="btn-glitch relative inline-flex items-center justify-center gap-2 bg-primary-container text-void px-6 sm:px-8 py-3.5 sm:py-4 rounded-md font-semibold text-sm w-full sm:w-auto"
           >
             <Icon name="download" className="text-[18px]" />
-            <span className="relative">Download ISO</span>
+            <span className="relative">Download ISO — Free</span>
           </a>
           <a
-            href="https://github.com/lunaos/lunaos"
-            className="group inline-flex items-center justify-center gap-2 bg-transparent border border-outline-variant/60 text-primary px-6 sm:px-7 py-3.5 sm:py-4 rounded-md font-semibold text-sm hover:border-primary-container hover:text-primary-container hover:bg-primary-container/5 transition-all w-full sm:w-auto"
+            href="#features"
+            className="group inline-flex items-center justify-center gap-2 bg-transparent border border-outline-variant/60 text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-md font-semibold text-sm hover:border-primary-container hover:text-primary-container hover:bg-primary-container/5 transition-all w-full sm:w-auto"
           >
-            <Icon name="code" className="text-[18px] group-hover:rotate-12 transition-transform" />
-            View on GitHub
+            <Icon name="arrow_downward" className="text-[18px] group-hover:translate-y-0.5 transition-transform" />
+            Explore Features
           </a>
         </Reveal>
 
@@ -316,6 +366,7 @@ function Hero() {
       </motion.div>
     </section>
   );
+
 }
 
 /* ─────────────── SECTION HEADER ─────────────── */
@@ -332,10 +383,10 @@ function SectionHeader({ kicker, title, sub }: { kicker: string; title: string; 
         }}
       />
       <Reveal>
-        <span className="relative font-mono text-[10px] sm:text-[11px] md:text-[12px] tracking-[0.3em] sm:tracking-[0.35em] text-primary-container uppercase inline-flex items-center gap-2 sm:gap-3">
-          <span className="w-6 sm:w-8 h-px bg-primary-container/60" />
+        <span className="relative font-mono text-[18px] sm:text-[22px] md:text-[26px] lg:text-[30px] tracking-[0.28em] sm:tracking-[0.34em] text-primary-container uppercase inline-flex items-center gap-3 sm:gap-4 font-semibold">
+          <span className="w-10 sm:w-14 h-px bg-primary-container/60" />
           {kicker}
-          <span className="w-1.5 h-1.5 rounded-full bg-primary-container animate-breathing-glow" />
+          <span className="w-2 h-2 rounded-full bg-primary-container animate-breathing-glow" />
         </span>
       </Reveal>
       <AnimatedText
@@ -343,7 +394,7 @@ function SectionHeader({ kicker, title, sub }: { kicker: string; title: string; 
         as="h2"
         wordMode
         stagger={0.06}
-        className="relative block mt-3 sm:mt-4 md:mt-6 font-[var(--font-display)] text-[34px] xs:text-[40px] leading-[1.02] sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-[-0.035em] text-primary shimmer-text"
+        className="relative block mt-4 sm:mt-6 font-[var(--font-display)] text-[64px] xs:text-[80px] sm:text-[96px] md:text-[120px] lg:text-[140px] leading-[0.92] font-bold tracking-[-0.045em] text-primary shimmer-text"
       />
       {sub && (
         <Reveal delay={0.2}>
@@ -489,7 +540,7 @@ function PersonasSection() {
           <Reveal key={p.title} delay={i * 0.06}>
             <TiltCard className="h-full">
               <div className="relative p-8 rounded-xl bg-gradient-to-br from-surface-container/60 to-surface/40 backdrop-blur-xl precise-border h-full group overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(121,249,202,0.15),transparent_50%)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(180,125,255,0.15),transparent_50%)] opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative">
                   <Icon name={p.icon} className="text-primary-container text-[32px]" />
                   <h3 className="mt-4 font-[var(--font-display)] text-xl font-semibold text-primary">{p.title}</h3>
@@ -647,51 +698,221 @@ function InstallationSection() {
   );
 }
 
-function CommunitySection() {
-  const links = [
-    { icon: "forum", label: "Discord", href: "#discord" },
-    { icon: "groups", label: "GitHub", href: "https://github.com/lunaos/lunaos/issues" },
-    { icon: "diversity_3", label: "Reddit", href: "#reddit" },
+function ContactSection() {
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const channels = [
+    { icon: "mail", label: "Support email", value: "support@lunaos.dpdns.org", href: "mailto:support@lunaos.dpdns.org" },
+    { icon: "bug_report", label: "Report a bug", value: "Open a ticket", href: "https://sourceforge.net/p/lunaos/tickets/" },
+    { icon: "download", label: "Downloads", value: "SourceForge mirror", href: DOWNLOAD_URL },
   ];
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (status === "sending") return;
+    const fd = new FormData(e.currentTarget);
+    const payload = {
+      name: String(fd.get("name") ?? "").trim(),
+      email: String(fd.get("email") ?? "").trim(),
+      message: String(fd.get("message") ?? "").trim(),
+      website: String(fd.get("website") ?? ""),
+    };
+    // Basic client-side guard; server validates authoritatively
+    if (!payload.name || !payload.email || !payload.message) {
+      setStatus("error");
+      setErrorMsg("Please fill in every field.");
+      return;
+    }
+    if (payload.message.length > 2000) {
+      setStatus("error");
+      setErrorMsg("Message is too long (max 2000 characters).");
+      return;
+    }
+    setStatus("sending");
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/public/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? "Something went wrong");
+      }
+      setStatus("sent");
+      formRef.current?.reset();
+    } catch (err) {
+      setStatus("error");
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
+    }
+  };
+
   return (
-    <Section id="community">
-      <SectionHeader kicker="Community" title="Join the collective." />
-      <div className="grid sm:grid-cols-3 gap-6">
-        {links.map((l, i) => (
-          <Reveal key={l.label} delay={i * 0.08}>
-            <TiltCard intensity={6}>
-              <a
-                href={l.href}
-                className="group flex flex-col items-center gap-3 p-10 rounded-xl bg-surface/60 backdrop-blur-xl precise-border hover:border-primary-container transition-all"
-              >
-                <Icon
-                  name={l.icon}
-                  className="text-primary-container text-[40px] group-hover:drop-shadow-[0_0_16px_rgba(121,249,202,0.8)] transition-all group-hover:scale-110"
+    <Section id="contact">
+      <SectionHeader
+        kicker="Get in touch"
+        title="Questions, feedback, or want to contribute?"
+        sub="Send a message and we'll get back to you — usually within a couple of days."
+      />
+      <div className="grid lg:grid-cols-5 gap-6 lg:gap-8">
+        {/* Real form — spans 3 cols on desktop */}
+        <Reveal className="lg:col-span-3">
+          <TiltCard intensity={4} className="h-full">
+            <form
+              ref={formRef}
+              onSubmit={onSubmit}
+              noValidate
+              className="relative h-full p-6 sm:p-8 rounded-xl bg-surface-container/60 backdrop-blur-xl precise-border overflow-hidden"
+            >
+              <div className="absolute -top-24 -right-24 w-60 h-60 rounded-full bg-primary-container/10 blur-3xl pointer-events-none" />
+              <div className="relative grid gap-5">
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <label className="block">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Name</span>
+                    <input
+                      name="name"
+                      type="text"
+                      required
+                      maxLength={100}
+                      autoComplete="name"
+                      disabled={status === "sending"}
+                      placeholder="Ada Lovelace"
+                      className="mt-2 w-full bg-void/60 border border-outline-variant/50 rounded-md px-4 py-3 text-primary placeholder:text-muted/60 outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/30 transition-all disabled:opacity-50"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Email</span>
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      maxLength={255}
+                      autoComplete="email"
+                      disabled={status === "sending"}
+                      placeholder="you@domain.com"
+                      className="mt-2 w-full bg-void/60 border border-outline-variant/50 rounded-md px-4 py-3 text-primary placeholder:text-muted/60 outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/30 transition-all disabled:opacity-50"
+                    />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Message</span>
+                  <textarea
+                    name="message"
+                    required
+                    maxLength={2000}
+                    rows={6}
+                    disabled={status === "sending"}
+                    placeholder="Tell us what's on your mind…"
+                    className="mt-2 w-full bg-void/60 border border-outline-variant/50 rounded-md px-4 py-3 text-primary placeholder:text-muted/60 outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/30 transition-all resize-y disabled:opacity-50"
+                  />
+                </label>
+                {/* Honeypot — hidden from users, catches naive bots */}
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute -left-[9999px] w-px h-px opacity-0"
                 />
-                <span className="font-semibold text-primary">{l.label}</span>
-              </a>
-            </TiltCard>
-          </Reveal>
-        ))}
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-2">
+                  <button
+                    type="submit"
+                    disabled={status === "sending" || status === "sent"}
+                    data-text={status === "sending" ? "Sending…" : status === "sent" ? "Sent ✓" : "Send message"}
+                    className="btn-glitch relative inline-flex items-center justify-center gap-2 bg-primary-container text-void px-7 py-3.5 rounded-md font-semibold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    <Icon name={status === "sent" ? "check_circle" : "send"} className="text-[18px]" />
+                    <span className="relative">
+                      {status === "sending" ? "Sending…" : status === "sent" ? "Message sent" : "Send message"}
+                    </span>
+                  </button>
+                  <p
+                    className={`text-sm transition-colors ${
+                      status === "error" ? "text-red-400" : status === "sent" ? "text-primary-container" : "text-muted"
+                    }`}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {status === "error" && errorMsg}
+                    {status === "sent" && "Thanks — we'll get back to you soon."}
+                    {status === "idle" && "We never share your email."}
+                    {status === "sending" && "Delivering your message…"}
+                  </p>
+                </div>
+              </div>
+            </form>
+          </TiltCard>
+        </Reveal>
+
+        {/* Channel links — spans 2 cols */}
+        <div className="lg:col-span-2 grid gap-4">
+          {channels.map((c, i) => (
+            <Reveal key={c.label} delay={0.1 + i * 0.08}>
+              <TiltCard intensity={6}>
+                <a
+                  href={c.href}
+                  target={c.href.startsWith("http") ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  className="group relative flex items-center gap-4 p-5 rounded-xl bg-surface/60 backdrop-blur-xl precise-border hover:border-primary-container transition-all overflow-hidden"
+                >
+                  <Icon
+                    name={c.icon}
+                    className="text-primary-container text-[28px] shrink-0 group-hover:drop-shadow-[0_0_16px_rgba(180,125,255,0.8)] transition-all group-hover:scale-110"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">{c.label}</span>
+                    <p className="font-[var(--font-display)] text-base font-semibold text-primary group-hover:text-primary-container transition-colors truncate">
+                      {c.value}
+                    </p>
+                  </div>
+                  <Icon
+                    name="arrow_outward"
+                    className="text-on-surface-variant text-[18px] group-hover:text-primary-container group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all"
+                  />
+                </a>
+              </TiltCard>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </Section>
   );
 }
+
 
 function CTASection() {
   return (
     <Section>
       <Reveal>
         <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden precise-border p-8 sm:p-14 md:p-20 lg:p-24 text-center halo-glow bg-surface-container-lowest/70 backdrop-blur-2xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(121,249,202,0.15),transparent_65%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(180,125,255,0.15),transparent_65%)]" />
           <div className="absolute inset-0 grid-bg opacity-30" />
+          <motion.img
+            src={lunaLogo.url}
+            alt=""
+            aria-hidden
+            width={256}
+            height={256}
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+
+            className="absolute -right-16 -bottom-16 w-64 opacity-10 blur-[1px]"
+          />
           <div className="relative z-10 max-w-3xl mx-auto">
             <AnimatedText
               text="Ready to ascend?"
               as="h2"
               wordMode
               stagger={0.08}
-              className="block font-[var(--font-display)] text-5xl md:text-7xl font-bold tracking-[-0.03em] text-primary shimmer-text"
+              className="block font-[var(--font-display)] text-5xl md:text-7xl lg:text-[88px] font-bold tracking-[-0.03em] text-primary shimmer-text"
             />
             <Reveal delay={0.3}>
               <p className="mt-6 text-lg md:text-xl text-on-surface-variant max-w-2xl mx-auto">
@@ -701,7 +922,9 @@ function CTASection() {
             <Reveal delay={0.5}>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="https://sourceforge.net/projects/lunaos/files/"
+                  href={DOWNLOAD_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   data-text="Download LUNA OS"
                   className="btn-glitch relative inline-flex items-center justify-center gap-2 bg-primary-container text-void px-8 py-4 rounded-md font-semibold"
                 >
@@ -709,10 +932,11 @@ function CTASection() {
                   <span className="relative">Download LUNA OS</span>
                 </a>
                 <a
-                  href="https://github.com/lunaos/lunaos"
+                  href="#contact"
                   className="inline-flex items-center justify-center gap-2 border border-outline-variant/60 text-primary px-8 py-4 rounded-md font-semibold hover:border-primary-container transition-colors"
                 >
-                  Star on GitHub
+                  <Icon name="mail" className="text-[18px]" />
+                  Contact us
                 </a>
               </div>
             </Reveal>
@@ -728,7 +952,7 @@ function Footer() {
     <footer className="border-t border-outline-variant/20 bg-surface-container-lowest/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-container to-secondary-container" />
+          <img src={lunaLogo.url} alt="LUNA OS" width={28} height={28} loading="lazy" decoding="async" className="w-7 h-7 object-contain" />
           <span className="font-[var(--font-display)] font-bold text-primary">
             LUNA<span className="text-primary-container"> OS</span>
           </span>
@@ -740,3 +964,4 @@ function Footer() {
     </footer>
   );
 }
+

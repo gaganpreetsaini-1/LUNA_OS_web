@@ -77,16 +77,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LUNA OS — Light. Fast. Limitless." },
-      { name: "description", content: "The performance-focused gaming distro built on Arch Linux. Cyber-minimalist KDE Plasma, tuned for speed, ready out of the box." },
+      { name: "theme-color", content: "#0a0a0c" },
+      { title: "LUNA OS — Light. Fast. Limitless. | Arch Gaming Distro" },
+      { name: "description", content: "LUNA OS is a performance-focused Arch Linux gaming distro with a cyber-minimalist KDE Plasma desktop. Boot. Play. Create. Zero setup." },
+      { name: "keywords", content: "LUNA OS, Arch Linux, gaming distro, KDE Plasma, Wayland, Proton, Steam, Linux gaming" },
       { property: "og:title", content: "LUNA OS — Light. Fast. Limitless." },
       { property: "og:description", content: "Performance-focused Arch-based gaming OS with KDE Plasma. Boot. Play. Create." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "LUNA OS" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "LUNA OS — Light. Fast. Limitless." },
+      { name: "twitter:description", content: "The Arch-based gaming distro tuned for speed." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", type: "image/png", href: "/__l5e/assets-v1/425726bc-1a89-4872-ab6f-3d859767dc8d/luna-logo.png" },
+      { rel: "apple-touch-icon", href: "/__l5e/assets-v1/425726bc-1a89-4872-ab6f-3d859767dc8d/luna-logo.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -98,7 +104,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=swap",
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "LUNA OS",
+          applicationCategory: "OperatingSystem",
+          operatingSystem: "Linux",
+          description: "Performance-focused Arch Linux gaming distribution with KDE Plasma.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        }),
+      },
+    ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
